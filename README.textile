@@ -10,6 +10,8 @@ h2. Gem Requirements
 
 * "taf2-curb":taf2 (a fork of curb; using the base curb gem might work but is untested)
 * "xml-simple":xml
+* "deep_merge":dm
 
 [taf2]http://github.com/taf2/curb/tree/master
 [xml]http://xml-simple.rubyforge.org/
+[dm]http://rubyforge.org/projects/deepmerge/
