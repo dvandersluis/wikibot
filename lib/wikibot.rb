@@ -1,7 +1,8 @@
-require 'lib/class_ext'
-require 'lib/hash_ext'
-require 'lib/page'
-require 'lib/category'
+require 'class_ext'
+require 'hash_ext'
+require 'openhash'
+require 'page'
+require 'category'
 
 require 'rubygems'
 require 'curb'
@@ -38,11 +39,16 @@ module WikiBot
     attr_accessor :debug      # In debug mode, no writes will be made to the wiki
     attr_accessor :readonly   # Writes will not be made
 
-    def initialize(username, password, api = "http://en.wikipedia.org/w/api.php", auto_login = false)
+    def initialize(username, password, options = {})
       @config = Hash.new
       @cookies = Hash.new
       @api_hits = 0
       @page_writes = 0
+
+      api = options[:api] || "http://en.wikipedia.org/w/api.php"
+      auto_login = options[:auto_login] || false
+      @readonly = options[:readonly] || false
+      @debug = options[:debug] || false
 
       @config = {
         :username   => username,
@@ -53,21 +59,10 @@ module WikiBot
 
       # Set up cURL:
       @curl = Curl::Easy.new do |c|
-        c.headers["User-Agent"] = "Mozilla/5.0 Curb/Taf2/0.2.8 WikiBot/#{config[:username]}"
+        c.headers["User-Agent"] = "Mozilla/5.0 Curb/Taf2/0.2.8 WikiBot/#{config[:username]}/#{@@version}"
         #c.enable_cookies        = true
         #c.cookiejar             = @@cookiejar
-        
-        # If Set-Cookie headers are given in the response, set the cookies
-        c.on_header do |data|
-          header, text = data.split(":").map(&:strip)
-          if header == "Set-Cookie"
-            parts = text.split(";")
-            cookie_name, cookie_value = parts[0].split("=")
-            @cookies[cookie_name] = cookie_value
-          end
-          data.length
-        end
-      end
+       end
 
       login if auto_login
     end
@@ -99,6 +94,17 @@ module WikiBot
           @curl.on_debug do |type, data|
              p data
           end
+        end
+        
+        # If Set-Cookie headers are given in the response, set the cookies
+        @curl.on_header do |data|
+          header, text = data.split(":").map(&:strip)
+          if header == "Set-Cookie"
+            parts = text.split(";")
+            cookie_name, cookie_value = parts[0].split("=")
+            @cookies[cookie_name] = cookie_value
+          end
+          data.length
         end
 
         if data.nil? or (data.is_a? Array and data.empty?)
