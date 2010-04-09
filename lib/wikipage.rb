@@ -1,12 +1,33 @@
 class WikiPage
   class WriteError < StandardError; end
 
+  attr_writer :wiki_bot
+
   def initialize(wiki_bot, name)
     @wiki_bot = wiki_bot
     @name = name
   end
 
-  def write(text, summary, section = 0, minor = false)
+  ###
+  # Read from page
+  def content
+    @content ||= begin
+      data = {
+        :action => :query,
+        :titles => @name,
+        :prop => :revisions,
+        :rvprop => :content
+      }
+
+      @wiki_bot.query_api(:get, data)['query']['pages']['page']['revisions']['rev']
+    end
+
+    @content["content"]
+  end
+
+  ###
+  # Write to page
+  def write(text, summary, section = nil, minor = false)
     return if @wiki_bot.debug
 
     data = {
@@ -14,13 +35,13 @@ class WikiPage
       :title => @name,
 
       :text => text,
-      :section => section,
       :token => @wiki_bot.edit_token,
       :summary => summary,
       :recreate => 1,
       :bot => 1
     }
 
+    data[:section] = section if !section.nil?
     data[:minor] = 1 if minor
     data[:notminor] = 1 if !minor
   
@@ -30,6 +51,8 @@ class WikiPage
     raise WriteError, status unless status == "Success"
   end
 
+  ###
+  # Get page information
   def category_info
     data = {
       :action => :query,
@@ -37,7 +60,10 @@ class WikiPage
       :prop => :categoryinfo
     }
 
-    @wiki_bot.query_api(:get, data)['query']['pages']['page']['categoryinfo']
+    # The query API returns nothing for an empty cat, so we'll return a hash with all the normal
+    # properties set to 0 instead
+    empty_cat = { "pages" => 0, "size" => 0, "files" => 0, "subcats" => 0, "hidden" => "" }
+    @wiki_bot.query_api(:get, data)['query']['pages']['page']['categoryinfo'] || empty_cat
   end
 
   def members(sort = :sortkey, dir = :desc, namespace = nil)
@@ -70,9 +96,5 @@ class WikiPage
     end
 
     out
-  end
-
-  def num_pages
-    # Returns the number of pages in a category
   end
 end
