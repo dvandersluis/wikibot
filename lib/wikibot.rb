@@ -25,7 +25,7 @@ class WikiBot
 
   class LoginError < StandardError; end
 
-  @@version = "0.1.5"       # WikiBot version
+  @@version = "0.1.6"       # WikiBot version
 
   cattr_reader :version
   cattr_accessor :cookiejar # Filename where cookies will be stored
@@ -53,6 +53,17 @@ class WikiBot
       c.headers["User-Agent"] = "Mozilla/5.0 Curb/Taf2/0.2.8 WikiBot/#{config[:username]}"
       #c.enable_cookies        = true
       #c.cookiejar             = @@cookiejar
+      
+      # If Set-Cookie headers are given in the response, set the cookies
+      c.on_header do |data|
+        header, text = data.split(":").map(&:strip)
+        if header == "Set-Cookie"
+          parts = text.split(";")
+          cookie_name, cookie_value = parts[0].split("=")
+          @cookies[cookie_name] = cookie_value
+        end
+        data.length
+      end
     end
 
     login if auto_login
@@ -114,21 +125,25 @@ class WikiBot
     data = {
       :action     => :login, 
       :lgname     => @config[:username],
-      :lgpassword => @config[:password],
+      :lgpassword => @config[:password]
     }
 
     response = query_api(:post, data)['login']
 
+    if response['result'] == "NeedToken"
+      data = {
+        :action     => :login, 
+        :lgname     => @config[:username],
+        :lgpassword => @config[:password],
+        :lgtoken    => response['token']
+      }
+
+      response = query_api(:post, data)['login']
+    end
+
     raise LoginError, response['result'] unless response['result'] == "Success"
 
     @config[:cookieprefix] = response['cookieprefix'] 
-    @cookies = {
-      "#{@config[:cookieprefix]}UserName" => response['lgusername'],
-      "#{@config[:cookieprefix]}UserID" => response['lguserid'],
-      "#{@config[:cookieprefix]}Token" => response['lgtoken'],
-      "#{@config[:cookieprefix]}_session" => response['sessionid'],
-    }
-
     @config[:logged_in] = true
   end
 
@@ -168,5 +183,12 @@ class WikiBot
 
   def page(name)
     WikiPage.new(self, name)
+  end
+
+  def format_date(date)
+    # Formats a date into the Wikipedia format
+    time = date.strftime("%H:%M")
+    month = date.strftime("%B")
+    "#{time}, #{date.day} #{month} #{date.year} (UTC)"
   end
 end
