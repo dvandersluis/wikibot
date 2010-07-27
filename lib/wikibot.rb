@@ -28,20 +28,19 @@ module WikiBot
   class Bot
     class LoginError < StandardError; end
 
-    @@version = "0.2.0"       # WikiBot version
+    @@version = "0.2.1"       # WikiBot version
 
     cattr_reader :version
-    cattr_accessor :cookiejar # Filename where cookies will be stored
+    #cattr_accessor :cookiejar # Filename where cookies will be stored
 
     attr_reader :config
-    attr_reader :api_hits
-    attr_accessor :page_writes
-    attr_accessor :debug      # In debug mode, no writes will be made to the wiki
-    attr_accessor :readonly   # Writes will not be made
+    attr_reader :api_hits       # How many times the API was queried
+    attr_accessor :page_writes  # How many write operations were performed
+    attr_accessor :debug        # In debug mode, no writes will be made to the wiki
+    attr_accessor :readonly     # Writes will not be made
 
     def initialize(username, password, options = {})
-      @config = Hash.new
-      @cookies = Hash.new
+      @cookies = OpenHash.new
       @api_hits = 0
       @page_writes = 0
 
@@ -55,11 +54,11 @@ module WikiBot
         :password   => password,
         :api        => api,
         :logged_in  => false
-      }
+      }.to_openhash
 
       # Set up cURL:
       @curl = Curl::Easy.new do |c|
-        c.headers["User-Agent"] = "Mozilla/5.0 Curb/Taf2/0.2.8 WikiBot/#{config[:username]}/#{@@version}"
+        c.headers["User-Agent"] = "Mozilla/5.0 Curb/Taf2/0.2.8 WikiBot/#{@config.username}/#{@@version}"
         #c.enable_cookies        = true
         #c.cookiejar             = @@cookiejar
        end
@@ -68,10 +67,13 @@ module WikiBot
     end
 
     def query_api(method, raw_data = {})
-      url = @config[:api]
+      # Send a query to the API and handle the response
+      url = @config.api
+      raw_data = raw_data.to_openhash
 
-      raw_data[:format] = :xml if !(raw_data.include? :format and raw_data.include? 'format')
+      raw_data[:format] = :xml if raw_data.format.nil?
 
+      # Setup cookie headers for the request
       @curl.headers["Cookie"] = @cookies.inject([]) do |memo, pair|
         key, val = pair
         memo.push(CGI::escape(key) + "=" + CGI::escape(val))
@@ -107,11 +109,9 @@ module WikiBot
           data.length
         end
 
-        if data.nil? or (data.is_a? Array and data.empty?)
-          @curl.send("http_#{method}".to_sym)
-        else
-          @curl.send("http_#{method}".to_sym, *data)
-        end
+        params = ["http_#{method}".to_sym]
+        params.push(*data) unless data.nil? or (data.is_a? Array and data.empty?)
+        @curl.send(*params)
         @api_hits += 1
 
         raise CurbError.new(@curl) unless @curl.response_code == 200
@@ -127,16 +127,20 @@ module WikiBot
         end
       end
 
-      OpenHash.new(response_xml)
+      response_xml.to_openhash
     end
     
+    def logged_in?
+      @config.logged_in 
+    end
+
     def login
-      return if @config[:logged_in]
+      return if logged_in?
 
       data = {
         :action     => :login, 
-        :lgname     => @config[:username],
-        :lgpassword => @config[:password]
+        :lgname     => @config.username,
+        :lgpassword => @config.password
       }
 
       response = query_api(:post, data).login
@@ -144,8 +148,8 @@ module WikiBot
       if response.result == "NeedToken"
         data = {
           :action     => :login, 
-          :lgname     => @config[:username],
-          :lgpassword => @config[:password],
+          :lgname     => @config.username,
+          :lgpassword => @config.password,
           :lgtoken    => response.token
         }
 
@@ -154,20 +158,21 @@ module WikiBot
 
       raise LoginError, response.result unless response.result == "Success"
 
-      @config[:cookieprefix] = response.cookieprefix 
-      @config[:logged_in] = true
+      @config.cookieprefix = response.cookieprefix 
+      @config.logged_in = true
     end
 
     def logout
-      return if !@config[:logged_in]
+      return unless logged_in?
 
       query_api(:post, { :action => :logout })
-      @config[:logged_in] = false
-      @config[:edit_token] = nil
+      @config.logged_in = false
+      @config.edit_token = nil
     end
 
     def edit_token(page = "Main Page")
-      @config[:edit_token] ||= begin
+      return nil unless logged_in?
+      @config.edit_token ||= begin
         data = {
           :action     => :query, 
           :prop       => :info,
