@@ -14,10 +14,14 @@ class OpenHash < Hash
   # Allow hash properties to be referenced by dot notation
   def method_missing(name, *args)
     name = name.to_s
-    if self.include? name
-      self[name]
-    elsif self.include? name.to_sym
-      self[name.to_sym]
+    k = name.sub(/[?!=]$/, '')
+
+    if name =~ /=$/ && !args.empty?
+      self[k] = args.first
+    elsif self.include? k
+      self[k]
+    elsif self.include? k.to_sym
+      self[k.to_sym]
     end
   end
 end
