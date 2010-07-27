@@ -1,3 +1,6 @@
+require 'rubygems'
+require 'andand'
+
 module WikiBot
   class Page
     class WriteError < StandardError; end
@@ -12,7 +15,8 @@ module WikiBot
 
     ###
     # Read from page
-    def content
+    def content(reload = false)
+      @content = nil if reload
       @content ||= begin
         data = {
           :action => :query,
@@ -26,7 +30,8 @@ module WikiBot
     end
 
     # Parse page content
-    def text
+    def text(reload = false)
+      @text = nil if reload
       @text ||= begin
         data = {
           :action => :parse,
@@ -42,7 +47,8 @@ module WikiBot
     def categories(show = :all)
       # Cache hidden and non-hidden categories separately
       @categories ||= begin
-        puts "Loading category data"
+        @category_names = nil # Reset @category_names
+
         data = {
           :action => :query,
           :titles => @name,
@@ -50,9 +56,10 @@ module WikiBot
           :clshow => "!hidden"
         }
 
-        categories = @wiki_bot.query_api(:get, data).query.pages.page.categories.cl
+        categories = @wiki_bot.query_api(:get, data).query.pages.page.categories.andand.cl || []
+
         categories = categories.inject([]) do |memo, category|
-          memo.push(WikiBot::Category.new(@wiki_bot, category.title))
+          memo.push(WikiBot::Category.new(@wiki_bot, category["title"]))
         end
         
         data = {
@@ -62,9 +69,9 @@ module WikiBot
           :clshow => "hidden"
         }
 
-        hidden_categories = @wiki_bot.query_api(:get, data).query.pages.page.categories.cl
+        hidden_categories = @wiki_bot.query_api(:get, data).query.pages.page.categories.andand.cl || []
         hidden_categories = hidden_categories.inject([]) do |memo, category|
-          memo.push(WikiBot::Category.new(@wiki_bot, category.title))
+          memo.push(WikiBot::Category.new(@wiki_bot, category["title"]))
         end
 
         {:nonhidden => categories, :hidden => hidden_categories}
@@ -76,7 +83,7 @@ module WikiBot
     end
 
     def category_names(show = :all)
-      categories(show).map{ |c| c.name }
+      @category_names ||= categories(show).map{ |c| c.name }
     end
 
     ###
