@@ -4,14 +4,16 @@ h2. About
 
 WikiBot was originally a PHP-based framework for bots I run on Wikipedia, however when it broke due to changes in mediawiki code, I decided to rewrite it in Ruby, using the MediaWiki API instead of screen-scraping. This is the result.
 
-As you'll notice, the features it provides are rather sparse at the moment, as I've only been adding features that I require. When I get more time, I'll flesh it out more.
+As you'll notice, the features it provides are somewhat sparse at the moment, as I've only been adding features that I require. When I get more time, I'll flesh it out more.
 
 h2. Gem Requirements
 
 * "taf2-curb":taf2 (a fork of curb; using the base curb gem might work but is untested)
 * "xml-simple":xml
 * "deep_merge":dm
+* "andand":aa
 
 [taf2]http://github.com/taf2/curb/tree/master
 [xml]http://xml-simple.rubyforge.org/
 [dm]http://rubyforge.org/projects/deepmerge/
+[aa]http://andand.rubyforge.org/
