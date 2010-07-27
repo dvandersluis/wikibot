@@ -14,4 +14,8 @@ class Hash
       memo.push "#{CGI::escape(key.to_s)}=#{CGI::escape(val.to_s)}"
     end.join("&")
   end
+
+  def to_openhash
+    OpenHash.new(self)
+  end
 end
