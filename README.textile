@@ -4,16 +4,60 @@ h2. About
 
 WikiBot was originally a PHP-based framework for bots I run on Wikipedia, however when it broke due to changes in mediawiki code, I decided to rewrite it in Ruby, using the MediaWiki API instead of screen-scraping. This is the result.
 
-As you'll notice, the features it provides are somewhat sparse at the moment, as I've only been adding features that I require. When I get more time, I'll flesh it out more.
+By default, the bot uses the English Wikipedia. A different instance of MediaWiki can be used by specifying the @:api@ key when instantiating the class.
 
-h2. Gem Requirements
+The bot is not yet fully-featured, in that it doesn't abstract every possible MediaWiki API feature. However, unsupported queries can be constructed and will return a Hash based on the result XML (see Examples).
 
-* "taf2-curb":taf2 (a fork of curb; using the base curb gem might work but is untested)
-* "xml-simple":xml
-* "deep_merge":dm
-* "andand":aa
+h2. Installation
 
-[taf2]http://github.com/taf2/curb/tree/master
-[xml]http://xml-simple.rubyforge.org/
-[dm]http://rubyforge.org/projects/deepmerge/
-[aa]http://andand.rubyforge.org/
+WikiBot is now a gem on rubygems, so installation is as simple as
+
+bc. gem install wikibot
+
+If you want to install manually, the following gem dependencies are required:
+
+* "curb":curb >= 0.5.4.0 (the taf2-curb gem can be used as well)
+* "xml-simple":xml >= 1.0.12
+* "deep_merge":dm >= 0.1.0
+* "andand":aa >= 1.3.1
+
+h2. Usage
+
+bc. wb = WikiBot::Bot.new( "username", "password", { options } )
+
+When initializing a new WikiBot, the following options are available:
+
+* @autologin@ (default: false) - specifies if the bot should log into the mediawiki automatically. @WikiBot::Bot#login@ can be used to login otherwise.
+* @api@ (default: @http://en.wikipedia.org/w/api.php@) - the URL of the API to use
+* @readonly@ (default: false) - if true, the bot will not perform any write operation
+* @debug@ (default: false) - outputs Curb debug messages
+
+h2. Examples
+
+h3. Using the default options
+
+bc. wb = WikiBot::Bot.new("username", "password")
+wb.login
+page = wb.page("Main Page")
+text = page.text
+
+h3. Setting up some options
+
+bc. wb = WikiBot::Bot.new("username", "password", :autologin => true, :api => "http://fr.wikipedia.org/w/api.php")
+
+h3. Performing an unsupported query
+
+@WikiBot::Bot#query_api@ can be used to send an arbitrary query to the API. For this example, we'll get image info from the Main Page.
+
+bc. wb = WikiBot::Bot.new("username", "password", :autologin => true)
+query_data = {
+  :action => :query
+  :prop   => :images
+  :titles => "Main Page"
+}
+xml_hash = wb.query_api(:get, query_data)
+
+[curb]http://rubygems.org/gems/curb
+[xml]http://rubygems.org/gems/xml-simple
+[dm]http://rubygems.org/gems/deep_merge
+[aa]http://rubygems.org/gems/andand
