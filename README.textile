@@ -32,12 +32,13 @@ When initializing a new WikiBot, the following options are available:
 * @readonly@ (default: false) - if true, the bot will not perform any write operation
 * @debug@ (default: false) - outputs Curb debug messages
 
+Logging in is not required for queries that use @GET@, but is for queries that use @POST@.
+
 h2. Examples
 
-h3. Using the default options
+h3. Grabbing the text of a page 
 
 bc. wb = WikiBot::Bot.new("username", "password")
-wb.login
 page = wb.page("Main Page")
 text = page.text
 
