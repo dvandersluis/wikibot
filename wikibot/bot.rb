@@ -1,34 +1,13 @@
-require 'class_ext'
-require 'hash_ext'
-require 'openhash'
-require 'page'
-require 'category'
-
 require 'rubygems'
 require 'curb'
 require 'xmlsimple'
 require 'deep_merge'
 
 module WikiBot
-  class CurbError < StandardError
-    attr_accessor :curb
-    def initialize(curb)
-      @curb = curb 
-    end
-  end
-
-  class APIError < StandardError
-    attr_accessor :code, :info
-    def initialize(code, info)
-      @code = code
-      @info = info
-      end
-  end
-
   class Bot
     class LoginError < StandardError; end
 
-    @@version = "0.2.1"       # WikiBot version
+    @@version = "0.2.2"       # WikiBot version
 
     cattr_reader :version
     #cattr_accessor :cookiejar # Filename where cookies will be stored
@@ -120,11 +99,8 @@ module WikiBot
         raise APIError.new(xml['error']['code'], xml['error']['info']) if xml['error']
 
         response_xml.deep_merge! xml
-        if xml['query-continue']
-          raw_data.merge! xml['query-continue'][xml['query-continue'].keys.first]
-        else
-          break
-        end
+        break unless xml['query-continue']
+        raw_data.merge! xml['query-continue'][xml['query-continue'].keys.first]
       end
 
       response_xml.to_openhash

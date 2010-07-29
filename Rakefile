@@ -2,7 +2,7 @@ require 'rubygems'
 require 'rake'
 require 'echoe'
 
-Echoe.new('wikibot', '0.2.1.2') do |p|
+Echoe.new('wikibot', '0.2.2') do |p|
   p.description    = "Mediawiki Bot framework"
   p.url            = "http://github.com/dvandersluis/wiki_bot"
   p.author         = "Daniel Vandersluis"
