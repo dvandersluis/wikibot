@@ -52,8 +52,8 @@ h3. Performing an unsupported query
 
 bc. wb = WikiBot::Bot.new("username", "password", :autologin => true)
 query_data = {
-  :action => :query
-  :prop   => :images
+  :action => :query,
+  :prop   => :images,
   :titles => "Main Page"
 }
 xml_hash = wb.query_api(:get, query_data)
