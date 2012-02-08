@@ -88,8 +88,30 @@ module WikiBot
 
     ###
     # Write to page
+    def writable?
+      return false if @wiki_bot.debug or @wiki_bot.readonly
+      
+      # Deny all bots
+      return false if content.include?("{{nobots}}") or content.include?("{{bots|deny=all}}") or content.include?("{{bots|allow=none}}")
+
+      # Allow all bots
+      return true if content.include?("{{bots}}") or content.include?("{{bots|allow=all}}") or content.include?("{{bots|deny=none}}")
+      
+      # Username specific white/blacklist
+      if content =~ /\{\{bots\|(allow|deny)=([^\}]+)\}\}/
+        allow = Regexp.last_match(1)
+        usernames = Regexp.last_match(2).split(",")
+
+        return (allow == "allow") if usernames.include?(@wiki_bot.config.username)
+        return allow != "allow"
+      end
+
+      return true
+    end
+
     def write(text, summary, section = nil, minor = false)
-      return if @wiki_bot.debug or @wiki_bot.readonly
+      return false unless @wiki_bot.logged_in?
+      return false unless writable? 
 
       data = {
         :action => :edit,
