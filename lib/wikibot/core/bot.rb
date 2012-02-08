@@ -2,6 +2,7 @@ require 'rubygems'
 require 'curb'
 require 'xmlsimple'
 require 'deep_merge'
+require 'zlib'
 
 module WikiBot
   class Bot
@@ -38,6 +39,7 @@ module WikiBot
       # Set up cURL:
       @curl = Curl::Easy.new do |c|
         c.headers["User-Agent"] = "Mozilla/5.0 Curb/Taf2/0.2.8 WikiBot/#{@config.username}/#{@@version}"
+        c.headers["Accept-Encoding"] = "gzip" # Request gzip-encoded content from MediaWiki
         #c.enable_cookies        = true
         #c.cookiejar             = @@cookiejar
        end
@@ -71,19 +73,19 @@ module WikiBot
         @curl.url = url
         @curl.headers["Expect"] = nil # MediaWiki will give a 417 error if Expect is set
 
-        if @debug
-          @curl.on_debug do |type, data|
-             p data
-          end
-        end
+        @curl.on_debug { |type, data| p data } if @debug
         
-        # If Set-Cookie headers are given in the response, set the cookies
+        @gzip = false
         @curl.on_header do |data|
           header, text = data.split(":").map(&:strip)
           if header == "Set-Cookie"
+            # If Set-Cookie headers are given in the response, set the cookies
             parts = text.split(";")
             cookie_name, cookie_value = parts[0].split("=")
             @cookies[cookie_name] = cookie_value
+          elsif header == "Content-Encoding"
+            # If the respons is gzip encoded we'll have to decode it before use
+            @gzip = true if text == "gzip"
           end
           data.length
         end
@@ -95,7 +97,9 @@ module WikiBot
 
         raise CurbError.new(@curl) unless @curl.response_code == 200
         
-        xml = XmlSimple.xml_in(@curl.body_str, {'ForceArray' => false})
+        body = @gzip ? Zlib::GzipReader.new(StringIO.new(@curl.body_str)).read : @curl.body_str 
+
+        xml = XmlSimple.xml_in(body, {'ForceArray' => false})
         raise APIError.new(xml['error']['code'], xml['error']['info']) if xml['error']
 
         response_xml.deep_merge! xml
