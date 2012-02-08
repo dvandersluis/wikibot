@@ -1,4 +1,3 @@
-require 'wikibot/ext/class'
 require 'wikibot/ext/hash'
 require 'wikibot/vendor/openhash'
 require 'wikibot/core/bot'
