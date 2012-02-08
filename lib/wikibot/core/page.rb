@@ -15,9 +15,23 @@ module WikiBot
 
     ###
     # Read from page
+    def exists?(reload = false)
+      @exists = nil if reload
+      @exists ||= begin
+        data = {
+          :action => :query,
+          :titles => @name
+        }
+        
+        !@wiki_bot.query_api(:get, data).query.pages.page.include?("missing")
+      end
+    end
+
     def content(reload = false)
       @content = nil if reload
       @content ||= begin
+        return "" unless exists?
+
         data = {
           :action => :query,
           :titles => @name,
@@ -33,6 +47,8 @@ module WikiBot
     def text(reload = false)
       @text = nil if reload
       @text ||= begin
+        return "" unless exists?
+
         data = {
           :action => :parse,
           :page => @name
@@ -90,6 +106,7 @@ module WikiBot
     # Write to page
     def writable?
       return false if @wiki_bot.debug or @wiki_bot.readonly
+      return true unless content
       
       # Deny all bots
       return false if content.include?("{{nobots}}") or content.include?("{{bots|deny=all}}") or content.include?("{{bots|allow=none}}")
@@ -132,6 +149,8 @@ module WikiBot
       status = result.edit.result
       @wiki_bot.page_writes += 1
       raise WriteError, status unless status == "Success"
+
+      true
     end
   end
 end
