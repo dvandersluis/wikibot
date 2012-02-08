@@ -1,6 +1,9 @@
-Dir[File.dirname(__FILE__) + '/ext/*.rb'].each {|file| require file }
-Dir[File.dirname(__FILE__) + '/lib/*.rb'].each {|file| require file }
-Dir[File.dirname(__FILE__) + '/wikibot/*.rb'].each {|file| require file }
+require 'wikibot/ext/class'
+require 'wikibot/ext/hash'
+require 'wikibot/vendor/openhash'
+require 'wikibot/core/bot'
+require 'wikibot/core/page'
+require 'wikibot/core/category'
 
 module WikiBot
   class CurbError < StandardError
