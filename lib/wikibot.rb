@@ -4,6 +4,7 @@ require 'wikibot/vendor/openhash'
 require 'wikibot/core/bot'
 require 'wikibot/core/page'
 require 'wikibot/core/category'
+require 'wikibot/version'
 
 module WikiBot
   class CurbError < StandardError

@@ -8,11 +8,6 @@ module WikiBot
   class Bot
     class LoginError < StandardError; end
 
-    @@version = "0.2.2"       # WikiBot version
-
-    cattr_reader :version
-    #cattr_accessor :cookiejar # Filename where cookies will be stored
-
     attr_reader :config
     attr_reader :api_hits       # How many times the API was queried
     attr_accessor :page_writes  # How many write operations were performed
@@ -38,13 +33,20 @@ module WikiBot
 
       # Set up cURL:
       @curl = Curl::Easy.new do |c|
-        c.headers["User-Agent"] = "Mozilla/5.0 Curb/Taf2/0.2.8 WikiBot/#{@config.username}/#{@@version}"
+        c.headers["User-Agent"] = self.user_agent
         c.headers["Accept-Encoding"] = "gzip" # Request gzip-encoded content from MediaWiki
-        #c.enable_cookies        = true
-        #c.cookiejar             = @@cookiejar
        end
 
       login if auto_login
+    end
+
+    def version
+      # Specifies the client bot's version
+      raise NotImplementedError
+    end
+
+    def user_agent
+      "#{@config.username}/#{self.version} WikiBot/#{WikiBot::VERSION} (https://github.com/dvandersluis/wikibot)"
     end
 
     def query_api(method, raw_data = {})
