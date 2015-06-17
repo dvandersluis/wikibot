@@ -19,8 +19,10 @@ module WikiBot
       @api_hits = 0
       @page_writes = 0
 
-      api = options[:api] || "http://en.wikipedia.org/w/api.php"
+      api = options[:api] || "https://en.wikipedia.org/w/api.php"
       auto_login = options[:auto_login] || false
+
+      @follow_redirects = options[:nofollow] ? false : true
       @readonly = options[:readonly] || false
       @debug = options[:debug] || false
 
@@ -35,6 +37,7 @@ module WikiBot
       @curl = Curl::Easy.new do |c|
         c.headers["User-Agent"] = self.user_agent
         c.headers["Accept-Encoding"] = "gzip" # Request gzip-encoded content from MediaWiki
+        c.follow_location = true if @follow_redirects
        end
 
       login if auto_login
