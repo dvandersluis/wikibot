@@ -2,16 +2,16 @@
 
 Gem::Specification.new do |s|
   s.name = %q{wikibot}
-  s.version = "0.2.4"
+  s.version = "0.2.4.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 1.2") if s.respond_to? :required_rubygems_version=
   s.authors = ["Daniel Vandersluis"]
-  s.date = %q{2012-02-07}
+  s.date = %q{2015-06-17}
   s.description = %q{Mediawiki Bot framework}
   s.email = %q{daniel@codexed.com}
   s.extra_rdoc_files = ["README.textile", "lib/wikibot.rb", "lib/wikibot/core/bot.rb", "lib/wikibot/core/category.rb", "lib/wikibot/core/page.rb", "lib/wikibot/ext/hash.rb", "lib/wikibot/vendor/openhash.rb", "lib/wikibot/version.rb"]
   s.files = ["README.textile", "Rakefile", "lib/wikibot.rb", "lib/wikibot/core/bot.rb", "lib/wikibot/core/category.rb", "lib/wikibot/core/page.rb", "lib/wikibot/ext/hash.rb", "lib/wikibot/vendor/openhash.rb", "lib/wikibot/version.rb", "wikibot.gemspec", "Manifest"]
-  s.homepage = %q{http://github.com/dvandersluis/wiki_bot}
+  s.homepage = %q{http://github.com/dvandersluis/wikibot}
   s.rdoc_options = ["--line-numbers", "--inline-source", "--title", "Wikibot", "--main", "README.textile"]
   s.require_paths = ["lib"]
   s.rubyforge_project = %q{wikibot}

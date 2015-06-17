@@ -5,7 +5,7 @@ require 'lib/wikibot/version'
 
 Echoe.new('wikibot', WikiBot::VERSION) do |p|
   p.description    = "Mediawiki Bot framework"
-  p.url            = "http://github.com/dvandersluis/wiki_bot"
+  p.url            = "http://github.com/dvandersluis/wikibot"
   p.author         = "Daniel Vandersluis"
   p.email          = "daniel@codexed.com"
   p.ignore_pattern = ["tmp/*", "script/*"]
