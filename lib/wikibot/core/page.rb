@@ -128,7 +128,6 @@ module WikiBot
 
     def write(text, summary, section = nil, minor = false)
       return false unless @wiki_bot.logged_in?
-      return false unless writable? 
 
       data = {
         :action => :edit,
@@ -145,10 +144,13 @@ module WikiBot
       data[:minor] = 1 if minor
       data[:notminor] = 1 if !minor
     
-      result = @wiki_bot.query_api(:post, data)
-      status = result.edit.result
-      @wiki_bot.page_writes += 1
-      raise WriteError, status unless status == "Success"
+      result = @wiki_bot.query_api(:post, data, !writable?)
+
+      if writable?
+        status = result.edit.result
+        @wiki_bot.page_writes += 1
+        raise WriteError, status unless status == "Success"
+      end
 
       true
     end

@@ -52,7 +52,9 @@ module WikiBot
       "#{@config.username}/#{self.version} WikiBot/#{WikiBot::VERSION} (https://github.com/dvandersluis/wikibot)"
     end
 
-    def query_api(method, raw_data = {})
+    def query_api(method, raw_data = {}, dry_run = false)
+      return false if dry_run
+
       # Send a query to the API and handle the response
       url = @config.api
       raw_data = raw_data.to_openhash
