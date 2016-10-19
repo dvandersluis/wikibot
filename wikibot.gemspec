@@ -1,12 +1,12 @@
 # -*- encoding: utf-8 -*-
+require 'lib/wikibot/version'
 
 Gem::Specification.new do |s|
   s.name = %q{wikibot}
-  s.version = "0.2.4.2"
+  s.version = WikiBot::VERSION
 
   s.required_rubygems_version = Gem::Requirement.new(">= 1.2") if s.respond_to? :required_rubygems_version=
   s.authors = ["Daniel Vandersluis"]
-  s.date = %q{2015-06-17}
   s.description = %q{Mediawiki Bot framework}
   s.email = %q{daniel@codexed.com}
   s.extra_rdoc_files = ["README.textile", "lib/wikibot.rb", "lib/wikibot/core/bot.rb", "lib/wikibot/core/category.rb", "lib/wikibot/core/page.rb", "lib/wikibot/ext/hash.rb", "lib/wikibot/vendor/openhash.rb", "lib/wikibot/version.rb"]
