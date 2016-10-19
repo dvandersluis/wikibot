@@ -38,6 +38,7 @@ module WikiBot
         c.headers["User-Agent"] = self.user_agent
         c.headers["Accept-Encoding"] = "gzip" # Request gzip-encoded content from MediaWiki
         c.follow_location = true if @follow_redirects
+        c.ssl_verify_peer = false
        end
 
       login if auto_login
